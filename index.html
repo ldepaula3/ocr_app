@@ -1,0 +1,125 @@
+<html>
+
+<head>
+    <title>OCR App</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/sweetalert/dist/sweetalert.min.js"></script>
+    <style>
+        img { padding: 20px !important; }
+        h2 { margin-top: 60px ; }
+        .padding-top {margin-top: 50px !important;}
+        textarea { height: 300px }
+    </style>
+    <script>
+        $(document).ready(function() {
+
+        const element = document.querySelector('form');
+
+        element.addEventListener('submit', event => {
+            event.preventDefault();
+            console.log('Form submission cancelled.');
+        });
+
+        // Updating image everytime it gets selected from input
+        $('#prescription').on('change',function(){
+            var fileName = document.getElementById("prescription").files[0].name;
+            $(this).next('.custom-file-label').html(fileName);
+
+            form = $("#login-form");
+        
+            pic_path = form["0"][0].value;
+
+            splitPath = pic_path.replace("C:\\fakepath\\", "/static/img/");
+
+            dt = {
+                "photo": splitPath
+            };
+
+            document.getElementById("uploaded_img").src = splitPath;
+        })
+
+        $('#btnSend').click(function() {
+
+            // Get form data
+            form = $("#login-form");
+
+            // Get image path
+            pic_path = form["0"][0].value;
+            
+            dt = {
+                "photo": pic_path
+            };
+            
+            // Send it to backend
+            $.ajax({
+                type: 'POST',
+                url: '/proccess_ocr',
+                data: JSON.stringify(dt, null, '\t'),
+                contentType: 'application/json;charset=UTF-8',
+                success: function(data) {
+                    $("#fixed_text").html('')
+                    $("#fixed_txt").html(data["text"])
+                }
+            });
+        });
+
+        $("#copy_clipboard").click(function(){
+            // Get Element
+            var text = document.getElementById("fixed_txt");
+
+            // Select text
+            text.select();
+
+            // Copy to clipboard
+            document.execCommand("copy");
+
+            swal("Copied to Clipboard", text.value);
+
+        });
+    });
+    </script>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-2">
+                <!-- <img src="https://cdn3.iconfinder.com/data/icons/communication-glyph-white-with-multicolor-backgrou/2048/8_-_Telecom_Tower-512.png" class="img-thumbnail"> -->
+            </div>
+            <div class="col-md-10">
+                <h2>Intelligent Decisioning</h2>
+            </div>
+        </div>
+        <div class="row padding-top">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-12">
+                        <form id="login-form">
+                            <p>Upload File</p>
+                            <div class="input-group">
+                                <div class="custom-file">
+                                    <input type="file" class="custom-file-input" id="prescription" accept="image/png, image/jpeg">
+                                    <label class="custom-file-label" for="prescription"></label>
+                                </div>
+                                <div class="input-group-append">
+                                    <button class="btn btn-primary" type="button" type="submit" id="btnSend">Upload</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="col-md-12">
+                        <img id="uploaded_img" class="img-fluid">
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <label for="fixed_txt">Text from Image</label>
+                <textarea class="form-control" id="fixed_txt" rows="3"></textarea>
+                 <button class="btn btn-primary float-right" type="button" type="submit" id="copy_clipboard">Copy to Clipboard</button>
+            </div>
+        </div> 
+    </div>
+</body>
+</html>
